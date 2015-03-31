@@ -1,5 +1,3 @@
-
-
 /*----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
   Minerva Vapoizers Proto
@@ -25,22 +23,22 @@ void setup()
 {
   Serial.begin(9600); //sends information to the serial monitor
   pinMode(BUTTONPLUS, INPUT_PULLUP); //intiates pin as a input function and also activates the resistor
-  pinMode(BUTTONMINUS, INPUT_PULLUP);
+  pinMode(BUTTONMINUS, INPUT_PULLUP);//intiates pin as a input function and also activates the resistor
 }
 
 void loop()
 {
-  Currentchange();
-  Return();
+  Currentchange(); //Changes pwm when appropriate
+  Return();//Returns values of the Currentchange function
   delay(50);
 }
 
 
 void Return()
 {
-  Serial.println(stateplus);
-  Serial.println(stateminus);
-  Serial.println(DUTYCYCLE);
+  Serial.println(stateplus); //returns the state of button 1
+  Serial.println(stateminus); //returns the state of button 2
+  Serial.println(DUTYCYCLE); //returns the rate of PWM(0,255)
 }
 void Currentchange()
 {
@@ -48,26 +46,26 @@ void Currentchange()
    Function that has the "intelligence" of the push button, and changes the 
    pwm higher or lower depending on which button is clicked.
   */
-  stateplus = digitalRead(BUTTONPLUS);
-  stateminus = digitalRead(BUTTONMINUS);
-  if (stateplus == LOW && oldstateplus == HIGH)
+  stateplus = digitalRead(BUTTONPLUS); //Stores the Current Button Value
+  stateminus = digitalRead(BUTTONMINUS);//Stores the Current Button Value
+  if (stateplus == LOW && oldstateplus == HIGH)//When the button 1 is pressed and last loop it wasn't, increase the DUTY CYCLE BY dpwm
   {
     DUTYCYCLE += dpwm;
     if (DUTYCYCLE > 255)
     {
-      DUTYCYCLE = 255;
+      DUTYCYCLE = 255; //DUTYCYCLE cannot go higher then 255
     }
   }
-  if (stateminus == LOW && oldstateminus == HIGH)
+  if (stateminus == LOW && oldstateminus == HIGH) //When the button 2 is pressed and last loop it wasn't, decrease the DUTY CYCLE BY dpwm
   {
     DUTYCYCLE -= dpwm;
     if (DUTYCYCLE < 0)
     {
-      DUTYCYCLE = 0;
+      DUTYCYCLE = 0; //DUTYCYCLE Cannot go below 0
     }
 
   }
   analogWrite(LED, DUTYCYCLE);
-  oldstateplus = stateplus;
-  oldstateminus = stateminus;
+  oldstateplus = stateplus; //loop is ending and the oldstateplus holds the state of the button..
+  oldstateminus = stateminus;//loop is ending and the oldstateminus holds the state of the button.
 }
