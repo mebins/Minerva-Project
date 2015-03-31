@@ -29,14 +29,14 @@ void setup()
 void loop()
 {
   Currentchange(); //Changes pwm when appropriate
-  Return();//Returns values of the Currentchange function
+  ReturnChange();//Returns values of the Currentchange function
   delay(50);
 }
 
 
-/*=========================================================================================================================================================================================================================
-===========================FUNCTIONS=======================================================================================================================================================================================*/
-void Return()
+/*=====================================================================
+====================FUNCTIONS=====================================*/
+void ReturnChange()
 {
   Serial.println(stateplus); //returns the state of button 1
   Serial.println(stateminus); //returns the state of button 2
