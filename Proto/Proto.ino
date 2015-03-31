@@ -34,16 +34,19 @@ void loop()
 }
 
 
+/*=========================================================================================================================================================================================================================
+===========================FUNCTIONS=======================================================================================================================================================================================*/
 void Return()
 {
   Serial.println(stateplus); //returns the state of button 1
   Serial.println(stateminus); //returns the state of button 2
   Serial.println(DUTYCYCLE); //returns the rate of PWM(0,255)
 }
+
 void Currentchange()
 {
   /*
-   Function that has the "intelligence" of the push button, and changes the 
+   Function that has the "intelligence" of the push button, and changes the
    pwm higher or lower depending on which button is clicked.
   */
   stateplus = digitalRead(BUTTONPLUS); //Stores the Current Button Value
