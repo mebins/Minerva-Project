@@ -1,8 +1,8 @@
 /*----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
   Minerva Vapoizers Proto
-  8-APRIL-2015
-  Version 002
+  29-March-2015
+  Version 001
   Prototype Code to test digital potentiometer, voltmeter, and LCD.
 
 
@@ -11,16 +11,12 @@
 #define BUTTONPLUS 2 //when clicked will increase the pwm by set number
 #define BUTTONMINUS 8// when clicked will decrease the pwm by set number
 #define LED 3 //led in pin 3 
-#define FIRE 12 //Fire Button in pin 12
 bool stateplus; //holds current plus button state
 bool stateminus; //holds current minus button state
 bool oldstateplus; //holds previous plus button state
 bool oldstateminus;//holds previous minus button state
-bool firebutton;
 int DUTYCYCLE = 100; //pwm speed out of 255
-int dpwm = 10;//delta pwm per click
-float DUTYCYCLEPERCENTAGE;//Returns 0 to 100 of Dutycycle
-int mode = 0;
+int dpwm = 20;//delta pwm per click
 
 
 void setup()
@@ -28,7 +24,6 @@ void setup()
   Serial.begin(9600); //sends information to the serial monitor
   pinMode(BUTTONPLUS, INPUT_PULLUP); //intiates pin as a input function and also activates the resistor
   pinMode(BUTTONMINUS, INPUT_PULLUP);//intiates pin as a input function and also activates the resistor
-  pinMode(FIRE, INPUT_PULLUP);//intiates pin as a input function and also activates the resistor
 }
 
 void loop()
@@ -38,14 +33,14 @@ void loop()
   delay(50);
 }
 
-/*=========================FUNCTIONS=====================================*/
+
+/*=====================================================================
+====================FUNCTIONS=====================================*/
 void ReturnChange()
 {
-  
-  Serial.print(DUTYCYCLEPERCENTAGE);
-  Serial.println("%");
-  Serial.print("Mode: ");
-  Serial.println(mode);
+  Serial.println(stateplus); //returns the state of button 1
+  Serial.println(stateminus); //returns the state of button 2
+  Serial.println(DUTYCYCLE); //returns the rate of PWM(0,255)
 }
 
 void Currentchange()
@@ -56,41 +51,23 @@ void Currentchange()
   */
   stateplus = digitalRead(BUTTONPLUS); //Stores the Current Button Value
   stateminus = digitalRead(BUTTONMINUS);//Stores the Current Button Value
-  firebutton = digitalRead(FIRE);//Stores the Current Fire Button Value
-
-  if (firebutton == LOW) // If the fire button is pressed then return to Normal Mode
+  if (stateplus == LOW && oldstateplus == HIGH)//When the button 1 is pressed and last loop it wasn't, increase the DUTY CYCLE BY dpwm
   {
-    mode = 0; //Normal Mode
-  }
-
-  if ( mode == 0 && stateplus == LOW && stateminus == LOW && oldstateplus == LOW && oldstateminus == LOW) //if on Normal Mode and if the change buttons are held change to Edit Mode
-  {
-    delay(200);
-    if (mode == 0  && stateplus == LOW && stateminus == LOW && oldstateplus == LOW && oldstateminus == LOW) mode = 1; //Edit Mode
-  }
-
-  if (mode == 1) //if Edit Mode is on
-  {
-    if (stateplus == LOW && oldstateplus == LOW)
+    DUTYCYCLE += dpwm;
+    if (DUTYCYCLE > 255)
     {
-      delay(100);
-      if (stateplus == LOW && oldstateplus == LOW)
-      {
-        DUTYCYCLE += dpwm;
-        if (DUTYCYCLE > 255)DUTYCYCLE = 255;
-      }
-    }
-    if (stateminus == LOW && oldstateminus == LOW) //When the button 2 is pressed and last loop it wasn't, decrease the DUTY CYCLE BY dpwm
-    {
-      delay(100);
-      if (stateminus == LOW && stateminus == LOW)
-      {
-        DUTYCYCLE -= dpwm;
-        if (DUTYCYCLE < 0)DUTYCYCLE = 0; //DUTYCYCLE Cannot go below 0
-      }
+      DUTYCYCLE = 255; //DUTYCYCLE cannot go higher then 255
     }
   }
-  DUTYCYCLEPERCENTAGE = ((DUTYCYCLE / 255.00) * 100.00);//Updates Percentage
+  if (stateminus == LOW && oldstateminus == HIGH) //When the button 2 is pressed and last loop it wasn't, decrease the DUTY CYCLE BY dpwm
+  {
+    DUTYCYCLE -= dpwm;
+    if (DUTYCYCLE < 0)
+    {
+      DUTYCYCLE = 0; //DUTYCYCLE Cannot go below 0
+    }
+
+  }
   analogWrite(LED, DUTYCYCLE);
   oldstateplus = stateplus; //loop is ending and the oldstateplus holds the state of the button..
   oldstateminus = stateminus;//loop is ending and the oldstateminus holds the state of the button.
