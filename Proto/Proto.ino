@@ -1,11 +1,8 @@
 /*----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
   Minerva Vapoizers Proto
-  8-APRIL-2015
-  Version 004
+  9-APRIL-2015
+  Version 005
   Prototype Code to test digital potentiometer, voltmeter, and LCD.
-
-
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
 //-------------------------------DECLERATIONS---------------------------------------------------------------------------------------------------------------------------------------------------
 #define MODE 2 //changes Mode when clicked
@@ -14,14 +11,22 @@
 #define KNOB A0
 #define CHIP 3 //led in pin 3 
 #define FIRE 12 //Fire Button in pin 12
-bool firebutton; //holds current firebutton state.
-bool modebutton;
-bool omodebutton;//holds previous minus button state
+#define VOLTMETER A5
+bool firebutton; //holds current firebutton state
+bool modebutton; //holds current modeutton state
+bool omodebutton;//holds previous modebutton state
 float DUTYCYCLE = 0.00; //pwm speed out of 255
 float dutycyclepercentage; //duty cycle value in percentage
 int ledmode = 0; //NORMAL MODE = 0 ALWAYS ON = 1 ALWAYS OFF = 2
-int lcdmode = 1; //ON = 1 OFF = 0
-int sleeptimer = 0;
+int lcdmode = 1;//ON = 1 ALWAYS ON = 2 ALWAYS OFF = 3
+float r1= 560.00; // First Resistors Value
+float r2= 560.00; // Second Resistors Value
+float vIn = 10.00; // The Max Voltage that will go in
+float vOut = (r1/(r1+r2))*vIn; // The Voltage out
+float voltageRatio = vIn/vOut; // the voltage ratio compared to Vin with Vout
+float voltageStep = 0.00488;// Voltage In divided by 1024
+float voltageValue; 
+int sleeptimer = 0; //counts how long the loop has been going on
 void setup()
 {
   Serial.begin(9600); //sends information to the serial monitor
@@ -38,6 +43,7 @@ void loop()
   returnChange();//Returns values of the Currentchange function
   lcdSleepDisplay();
   PVLED();
+  batteryLife();
   Serial.println(sleeptimer);
   Serial.println(lcdmode);
   delay(50);
@@ -47,12 +53,31 @@ void loop()
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //-------------------------------FUNCTIONS---------------------------------------------------------------------------------------------------------------------------------------------------
 
+
+void batteryLife()
+{
+ voltageValue = analogRead(VOLTMETER)*voltageStep;
+ float batteryVoltage = voltageValue*voltageRatio;
+ //Serial.println(batteryVoltage);
+ if(batteryVoltage <= 7)
+ {
+   Serial.print("BATTERY LIFE LOW: ");
+   Serial.println(batteryVoltage);
+ }
+ else{ 
+ Serial.println(batteryVoltage);
+ Serial.print(((abs(batteryVoltage - 6.8))/1.6)*100); 
+ Serial.println("%");
+ }
+}
+
 void lcdSleepDisplay() //makes the lcd display automatically go to sleep after idle
 {
   if (lcdmode == 1)digitalWrite(LCD, HIGH);//When on Mode 1 the LCD display turns on
   if (lcdmode == 0) digitalWrite(LCD, LOW); //When on Mode 0 the LCD display turns off
   sleeptimer++; //adds 1 to the sleep timer.
   if (sleeptimer >= 100)(lcdmode = 0); //when sleep timer is equal or greater than 100, the lcd mode = 0
+  if (sleeptimer >= 1000)sleeptimer = 100;
 }
 
 void PVLED() //changes mode from illuminates when fire button clicked, Always on, Always off
@@ -92,6 +117,7 @@ void currentChange()
   DUTYCYCLE = analogRead(A0) * (255.0 / 1023.0); // Converts Read Values from 0 to 255
   if (modebutton == LOW && omodebutton == HIGH) ledmode++; //when clicked the ledmode increases by 1
   if (ledmode > 2)ledmode = 0; // if ledmode value greater than 2 return to 0
+  if (lcdmode > 3)ledmode = 1;
   if (firebutton == LOW) // If the fire button is pressed then return to Normal Mode
   {
     sleepModeReset(); //uses sleepmode reset function
